@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
-# Node.js 20 Deprecation 경고를 해결하기 위해 환경 변수 추가
+# Node.js 24 강제 사용 설정 (경고 제거)
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -22,22 +22,27 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
+      # 최신 v5 버전 사용 가능 시 업데이트
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          # 프로젝트 코드는 20 버전을 유지하되, 실행 엔진은 위 env 설정으로 24를 사용하게 됩니다.
-          node-version: 20
+          node-version: 20 # 빌드는 안정적인 20 버전 유지
+          cache: 'npm'    # 빌드 속도 향상 및 오류 방지
 
-      - run: npm install
+      - name: Install dependencies
+        run: npm ci # npm install보다 엄격하고 안정적인 설치 방식
 
       - name: Build (inject GEMINI_API_KEY)
         run: npm run build
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          VITE_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }} # Vite 사용 시 VITE_ 접두어 필요할 수 있음
 
-      - uses: actions/upload-pages-artifact@v3
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
-      - uses: actions/deploy-pages@v4
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
