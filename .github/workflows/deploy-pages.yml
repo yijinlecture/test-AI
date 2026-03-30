@@ -5,6 +5,10 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
+# Node.js 20 Deprecation 경고를 해결하기 위해 환경 변수 추가
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 permissions:
   contents: read
   pages: write
@@ -22,6 +26,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
+          # 프로젝트 코드는 20 버전을 유지하되, 실행 엔진은 위 env 설정으로 24를 사용하게 됩니다.
           node-version: 20
 
       - run: npm install
