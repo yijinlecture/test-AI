@@ -5,7 +5,6 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
-# Node.js 24 강제 사용 설정 (경고 제거)
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -22,27 +21,28 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      # 최신 v5 버전 사용 가능 시 업데이트
       - uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20 # 빌드는 안정적인 20 버전 유지
-          cache: 'npm'    # 빌드 속도 향상 및 오류 방지
+          node-version: 20
+          cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci # npm install보다 엄격하고 안정적인 설치 방식
+        run: npm ci # package-lock.json을 기준으로 깔끔하게 설치
 
-      - name: Build (inject GEMINI_API_KEY)
+      - name: Build (Check Environment Variables)
         run: npm run build
         env:
-          VITE_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }} # Vite 사용 시 VITE_ 접두어 필요할 수 있음
+          # 사용하는 코드에 따라 둘 다 넣어주는 것이 안전합니다.
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          VITE_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: dist # 빌드 후 생성되는 폴더명이 dist가 맞는지 꼭 확인!
 
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
